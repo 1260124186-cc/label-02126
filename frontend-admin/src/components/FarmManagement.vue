@@ -1,47 +1,76 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
 import type { Crop } from '@/types/crop'
+import type { User } from '@/types/user'
 import { generateId } from '@/utils/format'
 import CropList from './CropList.vue'
 import CropForm from './CropForm.vue'
 
-// 作物数据列表
-const crops = ref<Crop[]>([])
+defineProps<{
+  user: User
+}>()
 
-// 计算属性：总种植面积
+const emit = defineEmits<{
+  logout: []
+}>()
+
+const crops = ref<Crop[]>([])
+const showUserMenu = ref(false)
+
+const toast = ref({
+  show: false,
+  message: '',
+  type: 'success' as 'success' | 'error'
+})
+
 const totalArea = computed(() => {
   return crops.value.reduce((sum, crop) => sum + crop.area, 0)
 })
 
-// 计算属性：平均亩产量
 const averageYield = computed(() => {
   if (crops.value.length === 0) return 0
   const total = crops.value.reduce((sum, crop) => sum + crop.yield, 0)
   return total / crops.value.length
 })
 
-// 新增作物
+function showToast(message: string, type: 'success' | 'error' = 'success') {
+  toast.value = { show: true, message, type }
+  setTimeout(() => {
+    toast.value.show = false
+  }, 3000)
+}
+
 function handleAddCrop(cropData: Omit<Crop, 'id'>) {
   const newCrop: Crop = {
     id: generateId(),
     ...cropData
   }
   crops.value.push(newCrop)
-  ElMessage.success(`成功添加作物：${cropData.name}`)
+  showToast(`成功添加作物：${cropData.name}`, 'success')
 }
 
-// 删除作物
 function handleDeleteCrop(id: number) {
   const index = crops.value.findIndex(c => c.id === id)
   if (index !== -1) {
     const cropName = crops.value[index].name
     crops.value.splice(index, 1)
-    ElMessage.success(`已删除作物：${cropName}`)
+    showToast(`已删除作物：${cropName}`, 'success')
   }
 }
 
-// 初始化模拟数据
+function handleLogout() {
+  showUserMenu.value = false
+  emit('logout')
+}
+
+function toggleUserMenu() {
+  showUserMenu.value = !showUserMenu.value
+}
+
+function closeUserMenu() {
+  showUserMenu.value = false
+}
+
 onMounted(() => {
   crops.value = [
     { id: 1, name: '水稻', area: 150, yield: 550, plantDate: '2025-03-15' },
@@ -55,19 +84,32 @@ onMounted(() => {
 
 <template>
   <div class="farm-management">
-    <!-- 页面头部 -->
     <header class="header">
       <div class="header-content">
         <div class="logo">
           <span class="logo-icon">🌾</span>
           <h1>农田作物种植数据管理系统</h1>
         </div>
+        <div class="user-dropdown" @click.stop>
+          <button class="user-trigger" @click="toggleUserMenu">
+            <span class="user-avatar">👤</span>
+            <span class="user-name">{{ user.name }}</span>
+            <span class="dropdown-arrow" :class="{ 'open': showUserMenu }">▼</span>
+          </button>
+          <Transition name="dropdown">
+            <div v-if="showUserMenu" class="dropdown-menu">
+              <button class="dropdown-item logout-item" @click="handleLogout">
+                <span class="item-icon">🚪</span>
+                退出登录
+              </button>
+            </div>
+          </Transition>
+        </div>
+        <div v-if="showUserMenu" class="dropdown-overlay" @click="closeUserMenu"></div>
       </div>
     </header>
 
-    <!-- 主内容区 -->
     <main class="main-content">
-      <!-- 统计卡片区 -->
       <section class="stats-section">
         <div class="stats-card">
           <div class="stats-icon area-icon">📐</div>
@@ -76,27 +118,23 @@ onMounted(() => {
             <span class="stats-value">{{ totalArea.toFixed(1) }} <small>亩</small></span>
           </div>
         </div>
-        <div class="stats-row">
-          <div class="stats-card">
-            <div class="stats-icon yield-icon">📊</div>
-            <div class="stats-info">
-              <span class="stats-label">平均亩产量</span>
-              <span class="stats-value">{{ averageYield.toFixed(1) }} <small>公斤/亩</small></span>
-            </div>
+        <div class="stats-card">
+          <div class="stats-icon yield-icon">📊</div>
+          <div class="stats-info">
+            <span class="stats-label">平均亩产量</span>
+            <span class="stats-value">{{ averageYield.toFixed(1) }} <small>公斤/亩</small></span>
           </div>
-          <div class="stats-card">
-            <div class="stats-icon count-icon">🌱</div>
-            <div class="stats-info">
-              <span class="stats-label">作物种类</span>
-              <span class="stats-value">{{ crops.length }} <small>种</small></span>
-            </div>
+        </div>
+        <div class="stats-card">
+          <div class="stats-icon count-icon">🌱</div>
+          <div class="stats-info">
+            <span class="stats-label">作物种类</span>
+            <span class="stats-value">{{ crops.length }} <small>种</small></span>
           </div>
         </div>
       </section>
 
-      <!-- 内容区域 -->
       <div class="content-grid">
-        <!-- 新增作物表单 -->
         <section class="form-section">
           <div class="section-header">
             <h2>➕ 新增作物</h2>
@@ -104,16 +142,22 @@ onMounted(() => {
           <CropForm @add-crop="handleAddCrop" />
         </section>
 
-        <!-- 作物列表 -->
         <section class="list-section">
           <div class="section-header">
             <h2>📋 作物列表</h2>
-            <el-tag type="success" effect="plain">共 {{ crops.length }} 条记录</el-tag>
+            <span class="badge">共 {{ crops.length }} 条记录</span>
           </div>
           <CropList :crops="crops" @delete-crop="handleDeleteCrop" />
         </section>
       </div>
     </main>
+
+    <Transition name="toast">
+      <div v-if="toast.show" :class="['toast', `toast-${toast.type}`]">
+        <span class="toast-icon">{{ toast.type === 'success' ? '✓' : '✕' }}</span>
+        {{ toast.message }}
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -125,7 +169,6 @@ onMounted(() => {
   background: #f0f2f5;
 }
 
-/* 头部样式 */
 .header {
   background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%);
   color: #fff;
@@ -136,6 +179,9 @@ onMounted(() => {
 .header-content {
   max-width: 1200px;
   margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .logo {
@@ -154,7 +200,105 @@ onMounted(() => {
   margin: 0;
 }
 
-/* 主内容区 */
+/* 用户下拉菜单 */
+.user-dropdown {
+  position: relative;
+}
+
+.user-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.user-trigger:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.user-avatar {
+  font-size: 20px;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.dropdown-arrow {
+  font-size: 10px;
+  transition: transform 0.15s ease;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 120px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  z-index: 1001;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background: #f5f5f5;
+}
+
+.logout-item {
+  color: #f44336;
+}
+
+.item-icon {
+  font-size: 16px;
+}
+
+.dropdown-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.15s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
 .main-content {
   flex: 1;
   max-width: 1200px;
@@ -163,34 +307,11 @@ onMounted(() => {
   padding: 24px;
 }
 
-/* 统计卡片区 - 与下方内容对齐 */
 .stats-section {
   display: grid;
-  grid-template-columns: 360px 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
   margin-bottom: 24px;
-}
-
-.stats-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-@media (max-width: 900px) {
-  .stats-section {
-    grid-template-columns: 1fr;
-  }
-
-  .stats-row {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .stats-row {
-    grid-template-columns: 1fr;
-  }
 }
 
 .stats-card {
@@ -202,7 +323,7 @@ onMounted(() => {
   gap: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   border: 1px solid #e8e8e8;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .stats-card:hover {
@@ -211,67 +332,57 @@ onMounted(() => {
 }
 
 .stats-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 10px;
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
-  flex-shrink: 0;
+  font-size: 28px;
 }
 
-.area-icon {
-  background: #e3f2fd;
-}
-
-.yield-icon {
-  background: #fff3e0;
-}
-
-.count-icon {
-  background: #e8f5e9;
-}
+.area-icon { background: #e3f2fd; }
+.yield-icon { background: #fff3e0; }
+.count-icon { background: #e8f5e9; }
 
 .stats-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
 }
 
 .stats-label {
-  font-size: 13px;
+  font-size: 14px;
   color: #666;
 }
 
 .stats-value {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   color: #333;
-  line-height: 1.2;
 }
 
 .stats-value small {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   color: #999;
 }
 
-/* 内容网格 */
 .content-grid {
   display: grid;
-  grid-template-columns: 360px 1fr;
+  grid-template-columns: 380px 1fr;
   gap: 24px;
-  align-items: start;
 }
 
 @media (max-width: 900px) {
   .content-grid {
     grid-template-columns: 1fr;
   }
+  .header-content {
+    flex-direction: column;
+    gap: 16px;
+  }
 }
 
-/* 区块样式 */
 .form-section,
 .list-section {
   background: #fff;
@@ -281,15 +392,9 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.list-section {
-  display: flex;
-  flex-direction: column;
-  max-height: calc(100vh - 280px);
-}
-
 .section-header {
   background: #fafafa;
-  padding: 16px 20px;
+  padding: 16px 24px;
   border-bottom: 1px solid #e8e8e8;
   display: flex;
   align-items: center;
@@ -297,9 +402,57 @@ onMounted(() => {
 }
 
 .section-header h2 {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   margin: 0;
-  color: #333;
+}
+
+.badge {
+  background: #e8f5e9;
+  color: #4CAF50;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  padding: 16px 24px;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+}
+
+.toast-success { background: #4CAF50; }
+.toast-error { background: #f44336; }
+
+.toast-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.25s ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(100px);
 }
 </style>
