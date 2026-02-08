@@ -69,7 +69,7 @@ npm run build
 
 ## 项目介绍
 
-本项目是一个基于 Vue 3 + TypeScript + Vite 构建的农田作物种植数据管理系统，采用 Composition API 开发，实现了作物数据的增删查改和统计功能。
+本项目是一个基于 Vue 3 + TypeScript + Vite 构建的农田作物种植数据管理系统
 
 ### 技术栈
 
