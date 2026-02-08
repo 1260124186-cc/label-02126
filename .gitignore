@@ -1,0 +1,100 @@
+# ========================================
+# 通用忽略规则
+# ========================================
+
+# 依赖目录
+node_modules/
+.pnp
+.pnp.js
+
+# 构建输出
+dist/
+build/
+*.local
+
+# ========================================
+# IDE 和编辑器
+# ========================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.swo
+*~
+
+# ========================================
+# 操作系统
+# ========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ========================================
+# 日志文件
+# ========================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ========================================
+# 环境变量
+# ========================================
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# ========================================
+# 测试覆盖率
+# ========================================
+coverage/
+.nyc_output/
+*.lcov
+
+# ========================================
+# 缓存目录
+# ========================================
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+
+# ========================================
+# 临时文件
+# ========================================
+*.tgz
+*.tar.gz
+*.zip
+tmp/
+temp/
+
+# ========================================
+# Docker 相关
+# ========================================
+.docker/
+
+# ========================================
+# 前端子项目特定 (frontend-admin)
+# ========================================
+frontend-admin/node_modules/
+frontend-admin/dist/
+frontend-admin/.env*
+frontend-admin/*.local
+frontend-admin/coverage/
