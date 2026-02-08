@@ -103,19 +103,23 @@ npm run build
         ├── App.vue                  # 根组件
         ├── vite-env.d.ts            # Vite 类型声明
         ├── components/              # 组件目录
+        │   ├── LoginPage.vue        # 登录页面组件
         │   ├── FarmManagement.vue   # 父组件 - 主管理页面
         │   ├── CropList.vue         # 子组件1 - 作物列表展示
         │   └── CropForm.vue         # 子组件2 - 新增作物表单
         ├── types/                   # TypeScript 类型定义
-        │   └── crop.ts              # 作物相关类型
+        │   ├── crop.ts              # 作物相关类型
+        │   └── user.ts              # 用户相关类型
         ├── utils/                   # 工具函数
-        │   └── format.ts            # 格式化工具
+        │   ├── format.ts            # 格式化工具
+        │   └── auth.ts              # 认证工具
         └── styles/                  # 全局样式
             └── variables.css        # CSS 变量
 ```
 
 ### 功能特性
 
+- ✅ 用户登录认证
 - ✅ 作物数据的新增和删除
 - ✅ 实时统计总种植面积和平均亩产量（计算属性）
 - ✅ 表单验证（必填项、正数校验）
