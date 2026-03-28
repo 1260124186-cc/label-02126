@@ -34,6 +34,9 @@ function validateForm(): boolean {
   if (!formData.name.trim()) {
     errors.name = '请输入作物名称'
     isValid = false
+  } else if (formData.name.trim().length > 50) {
+    errors.name = '作物名称不能超过50个字符'
+    isValid = false
   }
 
   const area = Number(formData.area)
@@ -43,6 +46,9 @@ function validateForm(): boolean {
   } else if (isNaN(area) || area <= 0) {
     errors.area = '种植面积必须为正数'
     isValid = false
+  } else if (area > 1000000) {
+    errors.area = '种植面积不能超过1,000,000亩'
+    isValid = false
   }
 
   const yieldValue = Number(formData.yield)
@@ -51,6 +57,9 @@ function validateForm(): boolean {
     isValid = false
   } else if (isNaN(yieldValue) || yieldValue <= 0) {
     errors.yield = '产量必须为正数'
+    isValid = false
+  } else if (yieldValue > 10000) {
+    errors.yield = '产量不能超过10,000公斤/亩'
     isValid = false
   }
 
@@ -122,6 +131,9 @@ async function handleSubmit() {
         placeholder="请输入种植面积"
         :class="{ 'is-error': errors.area }"
         clearable
+        min="0.01"
+        max="1000000"
+        step="0.01"
       />
       <span v-if="errors.area" class="error-message">{{ errors.area }}</span>
     </div>
@@ -137,6 +149,9 @@ async function handleSubmit() {
         placeholder="请输入亩产量"
         :class="{ 'is-error': errors.yield }"
         clearable
+        min="0.01"
+        max="10000"
+        step="0.01"
       />
       <span v-if="errors.yield" class="error-message">{{ errors.yield }}</span>
     </div>

@@ -1,5 +1,15 @@
 import type { User } from '@/types/user'
 
+// 安全警告：
+// 1. 此文件包含硬编码的模拟用户凭据，仅用于开发/演示目的
+// 2. 在生产环境中，应该：
+//    - 使用后端API进行身份验证
+//    - 密码应进行哈希处理（如bcrypt），不应明文存储
+//    - 使用JWT或其他安全的令牌机制
+//    - 实现适当的会话管理和超时机制
+//    - 考虑使用HTTPS加密传输
+// 3. localStorage存储的用户数据可以被用户访问和修改，不应存储敏感信息
+
 const AUTH_KEY = 'farm_auth_user'
 
 const MOCK_USERS = [

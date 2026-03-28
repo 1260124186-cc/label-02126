@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import type { Crop } from '@/types/crop'
 import type { User } from '@/types/user'
 import { generateId } from '@/utils/format'
@@ -14,8 +14,10 @@ const emit = defineEmits<{
   logout: []
 }>()
 
+const CROPS_STORAGE_KEY = 'farm_crops_data'
 const crops = ref<Crop[]>([])
 const showUserMenu = ref(false)
+let toastTimeout: ReturnType<typeof setTimeout> | null = null
 
 const toast = ref({
   show: false,
@@ -27,17 +29,44 @@ const totalArea = computed(() => {
   return crops.value.reduce((sum, crop) => sum + crop.area, 0)
 })
 
+const totalYield = computed(() => {
+  return crops.value.reduce((sum, crop) => sum + crop.area * crop.yield, 0)
+})
+
 const averageYield = computed(() => {
-  if (crops.value.length === 0) return 0
-  const total = crops.value.reduce((sum, crop) => sum + crop.yield, 0)
-  return total / crops.value.length
+  if (totalArea.value === 0) return 0
+  return totalYield.value / totalArea.value
 })
 
 function showToast(message: string, type: 'success' | 'error' = 'success') {
   toast.value = { show: true, message, type }
-  setTimeout(() => {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout)
+  }
+  toastTimeout = setTimeout(() => {
     toast.value.show = false
+    toastTimeout = null
   }, 3000)
+}
+
+function saveCropsToStorage() {
+  try {
+    localStorage.setItem(CROPS_STORAGE_KEY, JSON.stringify(crops.value))
+  } catch (error) {
+    console.error('保存作物数据失败:', error)
+  }
+}
+
+function loadCropsFromStorage() {
+  try {
+    const data = localStorage.getItem(CROPS_STORAGE_KEY)
+    if (data) {
+      crops.value = JSON.parse(data)
+    }
+  } catch (error) {
+    console.error('加载作物数据失败:', error)
+    crops.value = []
+  }
 }
 
 function handleAddCrop(cropData: Omit<Crop, 'id'>) {
@@ -71,14 +100,27 @@ function closeUserMenu() {
   showUserMenu.value = false
 }
 
+watch(crops, () => {
+  saveCropsToStorage()
+}, { deep: true })
+
 onMounted(() => {
-  crops.value = [
-    { id: 1, name: '水稻', area: 150, yield: 550, plantDate: '2025-03-15' },
-    { id: 2, name: '小麦', area: 200, yield: 480, plantDate: '2025-10-20' },
-    { id: 3, name: '玉米', area: 180, yield: 620, plantDate: '2025-04-10' },
-    { id: 4, name: '大豆', area: 100, yield: 180, plantDate: '2025-05-01' },
-    { id: 5, name: '棉花', area: 120, yield: 95, plantDate: '2025-04-25' }
-  ]
+  loadCropsFromStorage()
+  if (crops.value.length === 0) {
+    crops.value = [
+      { id: 1, name: '水稻', area: 150, yield: 550, plantDate: '2025-03-15' },
+      { id: 2, name: '小麦', area: 200, yield: 480, plantDate: '2025-10-20' },
+      { id: 3, name: '玉米', area: 180, yield: 620, plantDate: '2025-04-10' },
+      { id: 4, name: '大豆', area: 100, yield: 180, plantDate: '2025-05-01' },
+      { id: 5, name: '棉花', area: 120, yield: 95, plantDate: '2025-04-25' }
+    ]
+  }
+})
+
+onUnmounted(() => {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout)
+  }
 })
 </script>
 
