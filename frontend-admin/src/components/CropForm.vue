@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { Calendar } from '@element-plus/icons-vue'
-import type { CropFormData, FormErrors, Crop } from '@/types/crop'
+import type { CropFormData, FormErrors, Crop, StrictCropFormData } from '@/types/crop'
+import { isValidPositiveNumber, isValidDate } from '@/utils/format'
 
 // Emits 定义
 const emit = defineEmits<{

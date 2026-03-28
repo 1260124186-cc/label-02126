@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import type { Crop } from '@/types/crop'
 import type { User } from '@/types/user'
 import { generateId } from '@/utils/format'
+import { getStoredCrops, saveCrops } from '@/utils/auth'
 import CropList from './CropList.vue'
 import CropForm from './CropForm.vue'
 
@@ -71,14 +72,31 @@ function closeUserMenu() {
   showUserMenu.value = false
 }
 
+// 监听作物数据变化，自动保存到本地存储
+watch(
+  crops,
+  (newCrops) => {
+    saveCrops(newCrops)
+  },
+  { deep: true }
+)
+
 onMounted(() => {
-  crops.value = [
-    { id: 1, name: '水稻', area: 150, yield: 550, plantDate: '2025-03-15' },
-    { id: 2, name: '小麦', area: 200, yield: 480, plantDate: '2025-10-20' },
-    { id: 3, name: '玉米', area: 180, yield: 620, plantDate: '2025-04-10' },
-    { id: 4, name: '大豆', area: 100, yield: 180, plantDate: '2025-05-01' },
-    { id: 5, name: '棉花', area: 120, yield: 95, plantDate: '2025-04-25' }
-  ]
+  // 从本地存储加载作物数据
+  const storedCrops = getStoredCrops() as Crop[]
+
+  if (storedCrops.length > 0) {
+    crops.value = storedCrops
+  } else {
+    // 如果没有存储的数据，使用默认数据
+    crops.value = [
+      { id: 1, name: '水稻', area: 150, yield: 550, plantDate: '2025-03-15' },
+      { id: 2, name: '小麦', area: 200, yield: 480, plantDate: '2025-10-20' },
+      { id: 3, name: '玉米', area: 180, yield: 620, plantDate: '2025-04-10' },
+      { id: 4, name: '大豆', area: 100, yield: 180, plantDate: '2025-05-01' },
+      { id: 5, name: '棉花', area: 120, yield: 95, plantDate: '2025-04-25' }
+    ]
+  }
 })
 </script>
 
