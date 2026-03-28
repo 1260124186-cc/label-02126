@@ -30,6 +30,10 @@ export function formatArea(value: number): string {
 /**
  * 生成唯一ID
  */
+let idCounter = 0
 export function generateId(): number {
-  return Date.now() + Math.floor(Math.random() * 1000)
+  const timestamp = Date.now()
+  const random = Math.floor(Math.random() * 10000)
+  idCounter = (idCounter + 1) % 1000
+  return timestamp * 1000000 + random * 1000 + idCounter
 }
