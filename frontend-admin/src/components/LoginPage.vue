@@ -63,7 +63,7 @@ async function handleLogin() {
 
   await new Promise(resolve => setTimeout(resolve, 500))
 
-  const user = validateLogin(form.username, form.password)
+  const user = await validateLogin(form.username, form.password)
 
   if (user) {
     saveUser(user)

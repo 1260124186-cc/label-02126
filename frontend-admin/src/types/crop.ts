@@ -20,6 +20,16 @@ export interface CropFormData {
 }
 
 /**
+ * 严格的数值类型，只允许数字
+ */
+export interface StrictCropFormData {
+  name: string
+  area: number
+  yield: number
+  plantDate: string
+}
+
+/**
  * 表单验证错误类型
  */
 export interface FormErrors {

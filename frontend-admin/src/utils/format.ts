@@ -28,8 +28,36 @@ export function formatArea(value: number): string {
 }
 
 /**
- * 生成唯一ID
+ * 生成唯一ID（增强版）
  */
 export function generateId(): number {
-  return Date.now() + Math.floor(Math.random() * 1000)
+  // 使用更安全的随机数生成
+  const timestamp = Date.now()
+  const random = Math.floor(Math.random() * 999999)
+  return timestamp * 1000000 + random
+}
+
+/**
+ * 验证并转换为有效数字
+ */
+export function toValidNumber(value: string | number, defaultValue = 0): number {
+  const num = Number(value)
+  return isNaN(num) ? defaultValue : num
+}
+
+/**
+ * 验证是否为有效正数
+ */
+export function isValidPositiveNumber(value: string | number): boolean {
+  const num = Number(value)
+  return !isNaN(num) && num > 0
+}
+
+/**
+ * 验证日期格式有效性
+ */
+export function isValidDate(dateStr: string): boolean {
+  if (!dateStr) return false
+  const date = new Date(dateStr)
+  return !isNaN(date.getTime())
 }
